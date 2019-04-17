@@ -1,6 +1,6 @@
-OBJS=main.o read.o
+OBJS=dtree.o
 CC=g++
-PROGRAM=./id3
+PROGRAM=./dtree
 CFLAGS=-std=c++11
 INDIR=./inputs/
 
