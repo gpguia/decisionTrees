@@ -1,26 +1,33 @@
 #include "dtree.hpp"
-
+#include "id3.hpp"
 
 using namespace std;
 
 int main(int argc, char* argv[]){
-	if(argc == 1){
+	/*if(argc <= 2){
 		cout << "Please read the README file. \n";
 		exit(1);
-	}
+	}*/
 	
-	vector < vector<string> > data; //table, all data from input
-	data = readInput();
+	VDATA data; //table, all data from input
+	data = readInput(argv[1]);
 	int id_col; //target column
 	cout << "Target column: ";
 	cin >> id_col;
 	
+	node* r; //root
+	
+	checkNumCols(&data);
+	
+	ID3 *id3 = new ID3();
+	r = id3->doID3(data,data,id_col);
 	
 	
 	
 	return 0;	
 }
 
+//Split comma
 vector<string> split(string s){
 	vector <string> w;
 	size_t i = 0;
@@ -34,29 +41,128 @@ vector<string> split(string s){
 	return w;
 }
 
-vector < vector <string> > readInput(){
+//get intput, you can eather use ./dtree OPTION < inputfile or use make for it
+VDATA readInput(string path){
 	vector <vector<string> > in;
 	string l;
 	
-  cin >> l; //read first line
+	ifstream f (path.c_str());
 	
-	while(l.front() != '\0'){
-		in.push_back(split(l));
-		l.erase(); //to be able to stop reading input
-		cin >> l;
-	}
-	
+	if(f.is_open()){
+		while(getline(f, l)){
+			in.push_back(split(l));
+		}
+		f.close();
+	}else{
+		cout << "File not found or error while openning. \n";
+		exit(1);	
+	}	
 	return in;
 }
 
-void printData(vector < vector<string> > data){
+//Print data vector
+void printData(VDATA data){
 	unsigned int i,j;
 	
-	for(i=0 ; i < data.size() ; i++)
-	{
-		for(j=0 ; j < data[i].size() ; j++){
-			printf("%-8s ", data[i][j].c_str());
+	for(i=0;i<data.size();i++){
+		for(j=0;j< data[i].size() ; j++){
+			cout << data[i][j].c_str() << "\t";
 		}
 		cout << endl;
+	}
+}
+
+
+//got it from: https://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c
+//just to check if a string is a number or not, only work for positive numbers.
+bool isNum(const string s){ 
+	string::const_iterator it = s.begin();
+  while (it != s.end() && isdigit(*it)) ++it;
+  return !s.empty() && it == s.end();
+}
+
+//quicksort by column
+void qsort(VDATA *data, int low, int high, int col){
+	float pivot = stof((*data)[(low+high)/2][col]);
+	vector<string> aux;
+	int i = low;
+	int j = high;
+	
+	while(i<=j){
+		while(stof((*data)[i][col])<pivot)
+			i++;
+			
+		while(stof((*data)[j][col])>pivot)
+			j--;
+			
+		if(i<=j){
+			aux = (*data)[i];
+			(*data)[i] = (*data)[j];
+			(*data)[j] = aux;
+			i++;
+			j--;
+		}	
+	}	
+	
+	if(low < j)
+		qsort(data,low,j,col);
+	if(high > i)
+		qsort(data,i,high,col);
+	
+}
+
+//swap strings in data
+void sswap(VDATA *data, int begin, int end, string s, int col){
+	for(int i=begin;i<=end;i++){
+		(*data)[i][col] = s;
+	}	
+}
+
+//check columns that are number
+void checkNumCols(VDATA *data){
+	
+	int begin, end,count;
+	string lim1,lim2,cur,v;
+	stringstream ss;
+	
+	for(int col; col < (*data)[1].size();col++){
+		if(isNum((*data)[1][col])){
+			qsort(data,1,data->size()-1,col);
+			lim1 = (*data)[1][col];
+			begin = 1;
+			count=1;
+			cur = (*data)[1][(*data)[1].size()-1];
+			
+			for(int i=2;i<data->size();i++){
+				if((*data)[i][(*data)[i].size()-1] == cur && i != data->size()-1){
+					lim2=(*data)[i][col];
+					count++;
+					end=i;
+				}else if(count<2 && i != data->size()-1){
+					lim2 = (*data)[i][col];
+					count++;
+					end=i;
+					cur=(*data)[i][(*data)[i].size()-1];
+				}else if(i == data->size()-1){
+					end = i;
+					v = (*data)[i][col];
+					sswap(data,begin,end,">" + v, col);
+				}else{
+					ss << fixed << setprecision(2) << (stof(lim2) + stof((*data)[i][col]))/2;
+					v = ss.str();
+					ss.str("");
+					if(begin == 1)
+						sswap(data,begin,end,"<" + v, col);
+					else
+						sswap(data,begin,end,lim1 + "-" + v, col);
+						
+					lim1 = v;
+					count = 1;
+					begin = i;
+					cur = (*data)[i][(*data)[1].size()-1];
+				}
+			}
+			
+		}	
 	}
 }

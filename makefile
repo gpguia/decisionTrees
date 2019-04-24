@@ -1,4 +1,4 @@
-OBJS=dtree.o
+OBJS=dtree.o id3.o
 CC=g++
 PROGRAM=./dtree
 CFLAGS=-std=c++11
@@ -14,10 +14,10 @@ clean:
 	rm -f $(PROGRAM) $(OBJS)
 
 iris: $(PROGRAM)
-	$(PROGRAM) $(ALG) < $(INDIR)iris.csv
+	$(PROGRAM) $(INDIR)iris.csv
 	
 restaurant: $(PROGRAM)
-	$(PROGRAM) $(ALG) < $(INDIR)restaurant.csv
+	$(PROGRAM) $(INDIR)restaurant.csv
 	
 weather: $(PROGRAM)
-	$(PROGRAM) $(ALG) < $(INDIR)weather.csv
+	$(PROGRAM) $(INDIR)weather.csv

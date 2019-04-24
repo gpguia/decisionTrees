@@ -8,12 +8,27 @@
 #include <stdio.h>
 #include <sstream>
 #include <string.h>
+#include <fstream>
+#include <iomanip>
 
 using namespace std;
 
-vector <vector <string> > readInput();
-void print(vector< vector <string > > p);
+#define VDATA vector< vector<string> >
+
+typedef struct _node{
+	bool leaf;
+	string lable;
+	int count;
+	vector<pair<string, _node*> > child;
+}node;
+
+VDATA readInput(string path);
+void print(VDATA p);
 vector<string> split(string s);
-void printData(vector < vector < string > > data);
+void printData(VDATA data);
+void checkNumCols(VDATA *data);
+bool isNum(const string s);
+void qsort(VDATA *data, int low, int high, int col);
+void sswap(VDATA *data, int begin, int end, string s, int col);
 
 #endif
