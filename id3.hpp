@@ -4,9 +4,12 @@
 #include "dtree.hpp"
 #include <map>
 
+#define MP make_pair
 
 class ID3{
 private:
+	string searchSame(VDATA data, int id_col);
+	string searchMostCommon(VDATA data, int id_col);
 public:	
 	ID3();
 	virtual ~ID3();	

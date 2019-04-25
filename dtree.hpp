@@ -17,7 +17,7 @@ using namespace std;
 
 typedef struct _node{
 	bool leaf;
-	string lable;
+	string lbl;
 	int count;
 	vector<pair<string, _node*> > child;
 }node;
