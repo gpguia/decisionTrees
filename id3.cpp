@@ -47,6 +47,14 @@ string ID3::searchMostCommon(VDATA data, int id_col){
 	return lbl;
 }
 
+double ID3::entropy(vector <double> p){
+	double s = 0;
+	for(int i=0;i<p.size();i++){
+		s = s - p[i] * log2(p[i]);
+	}
+	return s;
+}
+
 int ID3::gain(VDATA data, int id_col){
 	int c = 1;
 	int s = 0;
@@ -58,7 +66,7 @@ int ID3::gain(VDATA data, int id_col){
 	double past_entropy = 0.0;
 	map <string, int> attrC;
 	
-	do{
+	while(c <= data[0].size()){
 		if(c != id_col){
 			map< pair<string,string>, int >::iterator it;
 			map< pair<string,string>, int >::iterator it2;
@@ -111,8 +119,8 @@ int ID3::gain(VDATA data, int id_col){
 			attrC.clear();
 			lbl.clear();
 		}
-		c++;
-	}while(c < data[0].size());
+		c++;	
+	}
 	
 	return b_col;	
 }
@@ -122,7 +130,6 @@ node* ID3::doID3(VDATA data, VDATA info, int id_col){
 	int best_col;
 	string lbl,sub_vi;
 	VDATA attrA;
-	vector<string> nv,exVect;
 	map <pair <string,string>, int> attrlab;
 	map <string,int> lab;
 	map <string, int> attr;
@@ -152,7 +159,65 @@ node* ID3::doID3(VDATA data, VDATA info, int id_col){
 	}else{
 		r->leaf = false;
 		best_col = gain(data, id_col);
+		r->lbl = info[0][best_col];
+		for(int i = 0; i < info.size();i++){
+			it = attrlab.find(MP(info[i][best_col],info[i][id_col]));
+			if(it != attrlab.end()){
+				it->second++;
+			}else{
+				attrlab.insert(MP(MP(info[i][best_col],info[i][id_col]),1));	
+			}
+			it2 = lab.find(info[i][id_col]);
+			if(it2 != lab.end()){
+				it2->second++;
+			}else{
+				lab.insert(MP(info[i][id_col],1));
+			}
+			it2 = attr.find(info[i][id_col]);
+			if(it2 != attr.end()){
+				it2->second++;
+			}else{
+				attr.insert(MP(info[i][best_col],1));	
+			}
+		}
 		
+		for(it2 = attr.begin();it2 != attr.end(); it2++){
+			VDATA ndata,exp;
+			for(int i = 0; info.size();i++){
+				vector<string> nv;
+				for(int j=0;j<info[i].size();j++){
+					if(j!= best_col)
+						nv.push_back(info[i][j]);
+				}
+				if(!nv.empty())
+					ndata.push_back(nv);					
+			}
+			
+			for(int i =0; data.size();i++){
+				vector<string> expv;
+				for(int j=0;j<data[i].size();j++){
+					if((data[i][best_col] == it2->first || i==0) && j != best_col)
+						expv.push_back(data[i][j]);
+				}
+				if(!expv.empty())
+					exp.push_back(expv);
+			}
+			
+			if(exp.size() == 1){
+				node* nnode = (node*) new node;
+				nnode->leaf = true;
+				lbl = searchMostCommon(data,id_col);
+				nnode->lbl = lbl;
+				nnode->count = (attrlab.find(MP(it2->first,lbl)))->second;
+				r->child.push_back(MP(it2->first,nnode));
+			}else{
+					if(id_col > best_col)
+						r->child.push_back(MP(it2->first,doID3(exp,ndata,id_col-1)));
+					else
+						r->child.push_back(MP(it2->first,doID3(exp,ndata,id_col)));
+			}
+			
+		}
 	}
-	
+	return r;
 }

@@ -11,6 +11,7 @@ private:
 	string searchSame(VDATA data, int id_col);
 	string searchMostCommon(VDATA data, int id_col);
 	int gain(VDATA data, int id_col);
+	double entropy(vector <double> p);
 public:	
 	ID3();
 	virtual ~ID3();	
