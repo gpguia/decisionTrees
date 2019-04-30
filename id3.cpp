@@ -58,21 +58,20 @@ double ID3::entropy(vector <double> p){
 int ID3::gain(VDATA data, int id_col){
 	int c = 1;
 	int s = 0;
-	float b_entropy = -1000.0;
+	double b_entropy = -1000.0;
 	int b_col = 0;
 	map< pair<string,string>, int > a;
 	map <string, int> lbl;
 	vector <double> prob;
 	double past_entropy = 0.0;
 	map <string, int> attrC;
+	map< pair<string,string>, int >::iterator it;
+	map< pair<string,string>, int >::iterator it2;
+	map<string, int>::iterator it3;
+	map<string, int>::iterator it4;
 	
-	while(c <= data[0].size()){
-		if(c != id_col){
-			map< pair<string,string>, int >::iterator it;
-			map< pair<string,string>, int >::iterator it2;
-			map<string, int>::iterator it3;
-			map<string, int>::iterator it4;
-			for(int i=1;data.size();i++){
+	if(c != id_col){
+			for(int i=1;i<data.size();i++){
 				it = a.find(MP(data[i][c],data[i][id_col]));
 				if(it != a.end()){
 					it->second++;
@@ -85,7 +84,7 @@ int ID3::gain(VDATA data, int id_col){
 				}else{
 					lbl.insert(MP(data[i][id_col],1));
 				}
-				
+	
 				it3 = attrC.find(data[i][c]);
 				if(it3 != attrC.end()){
 					it3->second++;
@@ -93,7 +92,7 @@ int ID3::gain(VDATA data, int id_col){
 					attrC.insert(MP(data[i][c],1));
 				}	
 			}
-			
+		
 			for(it3=lbl.begin();it3!=lbl.end();it3++){
 				prob.push_back((double)it3->second / (data.size()-1));
 			}
@@ -108,7 +107,59 @@ int ID3::gain(VDATA data, int id_col){
 						prob.push_back((double) it->second/it3->second);
 					}
 				}
-				past_entropy = past_entropy - (entropy(prob) * ((double)it3->second/(data.size()-1)));
+				past_entropy -= entropy(prob) * ((double)it3->second/(data.size()-1));
+				prob.clear();
+			}
+			if(past_entropy > b_entropy){
+				b_entropy = past_entropy;
+				b_col = c;
+			}
+			a.clear();
+			attrC.clear();
+			lbl.clear();
+		}
+		c++;
+	
+		
+	while(c < data[0].size()){
+		if(c != id_col){
+			for(int i=1;i<data.size();i++){
+				it = a.find(MP(data[i][c],data[i][id_col]));
+				if(it != a.end()){
+					it->second++;
+				}else{
+					a.insert(MP(MP(data[i][c],data[i][id_col]),1));
+				}
+				it3 = lbl.find(data[i][id_col]);
+				if(it3 != lbl.end()){
+					it3->second++;
+				}else{
+					lbl.insert(MP(data[i][id_col],1));
+				}
+	
+				it3 = attrC.find(data[i][c]);
+				if(it3 != attrC.end()){
+					it3->second++;
+				}else{
+					attrC.insert(MP(data[i][c],1));
+				}	
+			}
+		
+			for(it3=lbl.begin();it3!=lbl.end();it3++){
+				prob.push_back((double)it3->second / (data.size()-1));
+			}
+			past_entropy = entropy(prob);
+			
+			prob.clear();
+			
+			for(it3 = attrC.begin(); it3 != attrC.end(); it3++){ //search all attr
+				for(it4=lbl.begin(); it4 != lbl.end(); it4++){ //search all class
+					it = a.find(MP(it3->first, it4->first)); //looking for attr and class
+					if(it != a.end()){
+						prob.push_back((double) it->second/it3->second);
+					}
+				}
+				past_entropy -= entropy(prob) * ((double)it3->second/(data.size()-1));
 				prob.clear();
 			}
 			if(past_entropy > b_entropy){
@@ -122,7 +173,7 @@ int ID3::gain(VDATA data, int id_col){
 		c++;	
 	}
 	
-	return b_col;	
+	return b_col;
 }
 	
 node* ID3::doID3(VDATA data, VDATA info, int id_col){
@@ -130,6 +181,8 @@ node* ID3::doID3(VDATA data, VDATA info, int id_col){
 	int best_col;
 	string lbl,sub_vi;
 	VDATA attrA;
+	VDATA ndata,exp;
+	vector<string> nv;
 	map <pair <string,string>, int> attrlab;
 	map <string,int> lab;
 	map <string, int> attr;
@@ -182,9 +235,10 @@ node* ID3::doID3(VDATA data, VDATA info, int id_col){
 		}
 		
 		for(it2 = attr.begin();it2 != attr.end(); it2++){
-			VDATA ndata,exp;
-			for(int i = 0; info.size();i++){
-				vector<string> nv;
+			ndata.clear();
+			exp.clear();
+			for(int i = 0;i < info.size();i++){
+				nv.clear();
 				for(int j=0;j<info[i].size();j++){
 					if(j!= best_col)
 						nv.push_back(info[i][j]);
@@ -193,7 +247,7 @@ node* ID3::doID3(VDATA data, VDATA info, int id_col){
 					ndata.push_back(nv);					
 			}
 			
-			for(int i =0; data.size();i++){
+			for(int i =0; i<data.size();i++){
 				vector<string> expv;
 				for(int j=0;j<data[i].size();j++){
 					if((data[i][best_col] == it2->first || i==0) && j != best_col)

@@ -30,5 +30,6 @@ void checkNumCols(VDATA *data);
 bool isNum(const string s);
 void qsort(VDATA *data, int low, int high, int col);
 void sswap(VDATA *data, int begin, int end, string s, int col);
+void printTree(node *r, int num);
 
 #endif

@@ -4,10 +4,10 @@
 using namespace std;
 
 int main(int argc, char* argv[]){
-	/*if(argc <= 2){
+	if(argc < 2){
 		cout << "Please read the README file. \n";
 		exit(1);
-	}*/
+	}
 	
 	VDATA data; //table, all data from input
 	data = readInput(argv[1]);
@@ -21,8 +21,9 @@ int main(int argc, char* argv[]){
 	
 	ID3 *id3 = new ID3();
 	r = id3->doID3(data,data,id_col);
+	printTree(r,0);
 	
-	
+	//falta classificar
 	
 	return 0;	
 }
@@ -83,16 +84,16 @@ bool isNum(const string s){
 
 //quicksort by column
 void qsort(VDATA *data, int low, int high, int col){
-	float pivot = stof((*data)[(low+high)/2][col]);
+	float pivot = stod((*data)[(low+high)/2][col]);
 	vector<string> aux;
 	int i = low;
 	int j = high;
 	
 	while(i<=j){
-		while(stof((*data)[i][col])<pivot)
+		while(stod((*data)[i][col])<pivot)
 			i++;
 			
-		while(stof((*data)[j][col])>pivot)
+		while(stod((*data)[j][col])>pivot)
 			j--;
 			
 		if(i<=j){
@@ -164,5 +165,33 @@ void checkNumCols(VDATA *data){
 			}
 			
 		}	
+	}
+}
+
+void printTree(node *r, int num){
+	if(r == NULL){
+		printf("Node is null");
+		exit(1);
+	}
+	if(r->leaf){
+		cout << " " << r->lbl << " (" <<	 r->count <<")" << endl;
+	}else{
+		if(num != 0)
+			cout << endl;	
+		
+		for(int i=0;i<num;i++)
+			cout << "\t";	
+		if(num != 0){
+			cout << "\t";
+			num++;
+		}
+		cout << "<" << r->lbl << ">\n";
+		for(int i=0;i<(r->child).size();i++){
+			for(int j=0;j<=num;j++){
+				cout << "\t";
+			}
+			cout << (r->child)[i].first << ":";
+			printTree((r->child)[i].second,num+1);
+		}
 	}
 }

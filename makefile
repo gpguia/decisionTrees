@@ -4,8 +4,6 @@ PROGRAM=./dtree
 CFLAGS=-std=c++11
 INDIR=./inputs/
 
-ALG=E
-
 all: $(PROGRAM)
 
 $(PROGRAM): $(OBJS)
