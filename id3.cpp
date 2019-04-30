@@ -65,10 +65,8 @@ int ID3::gain(VDATA data, int id_col){
 	vector <double> prob;
 	double past_entropy = 0.0;
 	map <string, int> attrC;
-	map< pair<string,string>, int >::iterator it;
-	map< pair<string,string>, int >::iterator it2;
-	map<string, int>::iterator it3;
-	map<string, int>::iterator it4;
+	map< pair<string,string>, int >::iterator it,it2;
+	map<string, int>::iterator it3,it4;
 	
 	if(c != id_col){
 			for(int i=1;i<data.size();i++){
